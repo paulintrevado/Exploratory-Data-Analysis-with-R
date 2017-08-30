@@ -1,4 +1,4 @@
-# msan593_2017
+# MSAN 593
 Exploratory Data Analysis
 
 ## HW 1 files
