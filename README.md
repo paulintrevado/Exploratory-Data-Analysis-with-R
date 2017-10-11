@@ -90,14 +90,4 @@ The focus of this course will be to provide you with the basic techniques availa
 | Description | Due Date |
 |:--- | :---  |
 |[Project Signup] | |
-|[Final Project Description](https://github.com/jdwilson4/Intro-Data-Science-2017/blob/master/Assignments/Final_Project.pdf) | |
-
-
-### Important Dates
-
-- Monday, August 28th - Last day to add the class
-- Friday, September 8th - Census date. Last day to withdraw with tuition reversal
-- Tuesday, October 17th - Fall break! (**no class**)
-- Friday, November 3rd - Last day to withdraw
-- Thursday, November 23rd - Thanksgiving Holiday (**no class**)
-- Tuesday, December 5th - Last day of class
+|[Final Project Description](https://github.com/jdwilson4/Intro-Data-Science-2017/blob/master/Assignments/Final_Project.pdf) | 
