@@ -6,22 +6,6 @@ Welcome to Exploratory Data Anlysis with R (MSAN 593), a required course in the 
 
 [**Syllabus**](https://github.com/paulintrevado/msan593/blob/master/syllabus.pdf)
 
-
-
-# BSDS 100: Intro to Data Science with R
-
-## James D. Wilson
-
-**Email**: jdwilson4@usfca.edu
-
-**Class Time**: TR, 9:55 - 11:40 AM in Harney 430
-
-**Office Hours**: TR, 12:00 - 12:30 PM in Harney 107B
-
-**Book**: [R for Data Science](http://r4ds.had.co.nz/index.html) by Hadley Wickham and Garret Grolemund
-
-**Syllabus**: [Link](https://github.com/jdwilson4/Data100_Spring_2017/blob/master/Fall_2017.pdf)
-
 ## Course Learning Outcomes
 
 By the end of this course, you will be able to
@@ -43,15 +27,6 @@ The focus of this course will be to provide you with the basic techniques availa
 - **Case Studies** (20%): You will be assigned applied case studies throughout the class that are to be completed using RStudio.
 - **Final Project** (20%): The final project will be a computational case study that brings together the techniques learned throughout the semester. The description for this project will be provided towards the mid point of the semester.
 - **Extra Credit** (+5%): Create a *well-organized* database of *all* R functions that you use throughout the semester. These include those mentioned in lectures, those introduced in homework, etc. Along with each function, give a brief description that details the use of the function. Also, organize these functions into categories according to their use.
-
-### Data Science Links and News
-
-- **Undergraduate Research in Statistics and Data Science**: [Article from Amstat News](http://magazine.amstat.org/blog/2017/09/01/undergraduateexpectations/)
-
-### Schedule
-
-Overall, this course will be split into two main parts: (1) learning the basics of how to code in R and (2) performing data analysis on real case studies and examples using data science techniques in R.
-
 
 **Introduction**
 
