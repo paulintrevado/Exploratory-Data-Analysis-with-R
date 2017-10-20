@@ -1,4 +1,4 @@
-# Exploratory Data Anlysis with R
+# Exploratory Data Analysis with R
 
 ## Paul Intrevado
 
