@@ -1,4 +1,5 @@
 # Exploratory Data Analysis with R
+## MSAN 593
 
 ## Paul Intrevado
 
