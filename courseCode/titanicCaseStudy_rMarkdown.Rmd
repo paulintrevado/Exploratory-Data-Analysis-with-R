@@ -1,0 +1,59 @@
+---
+title: "RMarkdown: Titanic Case Study"
+author: "Paul Intrevado"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is my first R Markdown document for **MSAN 593**. I am required to submit all **MSAN 593** homework in RMarkdown. 
+
+Firstly, I am going to generate an `html` document as output, set in the YAML header section of this document. Secondly, I am **NOT** hardcoding the date, but rather using a function which will automatically print the current date on the day the document is knit.
+
+Now, I am going to import a dataset about passengers from the Titanic, using the following line of code:
+
+```{r, eval = FALSE}
+read.csv("~/Desktop/titanic.csv")
+```
+
+This fails for a few reasons, namely, I read in the file and stored it no where. So I wasted my time waiting for R to read in the file, and then when it finally did, it printed the rows of data to the Console window, and voila, the data disappeared faster than it loaded. Now I know better.
+
+```{r}
+titanicData <- read.csv("~/Desktop/titanic.csv")
+```
+
+`titanicData` has `r nrow(titanicData)` rows and `r ncol(titanicData)` columns. All  variables in the data frame are listed here using `str()`.
+
+```{r, echo = FALSE}
+str(titanicData)
+```
+
+The Titanic had `r length(titanicData$Sex[titanicData$Sex == "male"])` male passengers (`r round(length(titanicData$Sex[titanicData$Sex == "male"]) /nrow(titanicData) * 100, digits = 2)`%) and `r length(titanicData$Sex[titanicData$Sex == "female"])` female passengers (`r round(length(titanicData$Sex[titanicData$Sex == "female"]) /nrow(titanicData) * 100, digits = 2)`%). The mean age of all passengers is `r format(mean(titanicData$Age, na.rm = T), digits = 4)`. I was careful not to just output `r mean(titanicData$Age, na.rm = T)`, which has far too many numbers after the decimal. Also note that when using the `mean` function, one should not forget to include the `na.rm = TRUE` option, to ensure that an `NA` result is not returned. The mean age of all male passengers is `r round(mean(titanicData$Age[titanicData$Sex == "male"], na.rm = T), digits = 2)`, and the mean age of all female passengers is `r round(mean(titanicData$Age[titanicData$Sex == "female"], na.rm = T), digits = 2)`.
+
+I would like to figure out the breakdown of children versus adults on the Titanic. Firstly, I will create a new column in the `titanicData` data frame called `adultOrChild`, in which I will store either `child` or `adult` after testing the age of each passenger. 
+
+```{r, echo = F}
+titanicData$adultOrChild <- as.factor(ifelse(titanicData$Age < 18 ,"child", "adult"))
+```
+
+It turns out there were `r sum(titanicData$adultOrChild == "child", na.rm = T)` children on the ship and `r sum(titanicData$adultOrChild == "adult", na.rm = T)` adults. There was no avaiable age data on `r sum(is.na(titanicData$adultOrChild))` of the passengers.
+
+There are `r length(titanicData$Cabin[titanicData$Cabin != ""])` observations of the total `r nrow(titanicData)` observations (`r round(length(titanicData$Cabin[titanicData$Cabin != ""]) / nrow(titanicData) * 100 , digits = 2)`%) that contain information about a passenger's cabin.
+
+I can quickly generate summary statistics on passenger fares:
+
+```{r, echo = F}
+summary(titanicData$Fare)
+```
+
+I can generate a historgam of passenger ages:
+
+```{r, echo = F}
+hist(titanicData$Age)
+```
+
+
+

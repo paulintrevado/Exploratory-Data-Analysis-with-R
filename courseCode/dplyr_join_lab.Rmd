@@ -1,0 +1,139 @@
+---
+title: "LAB: `dplyr` and `*_join`s"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+library(dplyr)
+library(magrittr)
+```
+
+First we download the `JSON` data set `dplyr_joins_lab.json` and explore it.
+
+```{r jsonImport}
+myJSONdata <- jsonlite::fromJSON("~/Desktop/dplyr_joins_lab.json")
+```
+
+This is nested JSON data, which requires a little more code to flatten into a workable data frame.
+
+```{r jsonFlatten}
+flatJSONdata <- tibble::as_data_frame(jsonlite::flatten(myJSONdata))
+unnestedJSONdata <- flatJSONdata %>% tidyr::unnest(purch)
+```
+
+We want to explore, among other things, the classes of purchases made by customer, so we will import join `classes.csv` to our JSON data we might get more descriptive data on purchases.
+
+```{r classesImport, message = F}
+classes <- readr::read_csv("~/Desktop/classes.csv")
+lj_data <- dplyr::left_join(unnestedJSONdata, classes, c("class" ="letterCode"))
+```
+
+We can now explore our data and answer some interesting questions.
+
+The categories, ordered by frequency of purchase, arranged in descending order and excluding `NA`s are
+
+```{r}
+lj_data %>% 
+  group_by(type) %>% 
+    count() %>% 
+      filter(type != "NA") %>% 
+        arrange(desc(n)) %>% 
+          knitr::kable(col.names = c("Class", "Frequency"), align = rep('c', 2))
+```
+
+When breaking this down by gender, we observe some interesting and perhaps unexpected results:
+
+```{r}
+lj_data %>% 
+  group_by(type, cust.gender) %>% 
+    count() %>% 
+      filter(type != "NA") %>% 
+        arrange(desc(n)) %>% 
+          head(10) %>% 
+            knitr::kable(col.names = c("Class", "Gender", "Frequency"), align = rep('c', 3))
+```
+
+Of particular note, it seems that females buy more men's clothing than men do!
+
+\newpage
+
+Exploring method of purchase, we see that the top three most purchased classes with a credit card are
+
+```{r}
+lj_data %>% 
+  group_by(type, withCreditCard) %>% 
+    count() %>% 
+      filter(type != "NA", withCreditCard == T) %>% 
+        arrange(desc(n)) %>% 
+          ungroup() %>% 
+            head(3) %>% 
+              select(-withCreditCard) %>% 
+                knitr::kable(col.names = c("Class", "Frequency"), align = rep('c', 2))
+```
+
+and without credit cards
+
+```{r}
+lj_data %>% 
+  group_by(type, withCreditCard) %>% 
+    count() %>% 
+      filter(type != "NA", withCreditCard == F) %>% 
+        arrange(desc(n)) %>% 
+          ungroup() %>% 
+            head(3) %>% 
+              select(-withCreditCard) %>% 
+                knitr::kable(col.names = c("Class", "Frequency"), align = rep('c', 2))
+```
+
+```{r}
+prctCC <- lj_data %>% 
+  filter(withCreditCard == T, class != "NA") %>% 
+    count() / lj_data %>% 
+          filter(class != "NA") %>% 
+            count()
+```
+
+It turns out that half (`r format(prctCC * 100, digits = 4)`% to be precise) of the purchases were made by credit card and the other half were made by other methods (presumably cash). Is there a difference between credit card use for women and men?
+
+```{r}
+lj_data %>% 
+  group_by(cust.gender, withCreditCard) %>% 
+    count() %>% 
+      knitr::kable(format.args = list(big.mark = ","), 
+                  col.names = c("Gender", "Credit Card Use", "Frequency"), 
+                  align = rep('c', 3))
+```
+
+Not much it seems. Lastly, let's break down purchases by gender and credit card usage to explore total purchase amounts.
+
+```{r}
+lj_data$amt <- as.numeric(gsub('\\$', '', lj_data$amt))
+lj_data %>% 
+  select(cust.gender, withCreditCard, amt) %>% 
+    group_by(cust.gender, withCreditCard) %>% 
+      summarize(totalExp = sum(amt, na.rm = T)) %>% 
+        knitr::kable(format.args = list(big.mark = ","), 
+                  col.names = c("Gender", "Credit Card Use", "Total $ Purchases"), 
+                  align = rep('c', 3))
+
+```
+
+Lastly, with a little bit of digging, we discover that there is one class of purchases which does not exist in the transaction table, which suggests that this category was, at some point, subsumed by another category, or that this store stopped selling product from this category all together.
+
+```{r, include = F}
+dplyr::anti_join(classes, lj_data, c("letterCode" = "class"))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

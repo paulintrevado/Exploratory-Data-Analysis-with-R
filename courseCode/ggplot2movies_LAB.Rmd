@@ -1,0 +1,103 @@
+---
+title: "Case Study in `dplyr`: `ggplot2` Movies"
+author: "Paul Intrevado"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+```
+
+```{r libraries, include = F}
+library(tidyverse)
+library(ggplot2movies)
+library(scales)
+library(magrittr)
+library(knitr)
+myMovies <- movies
+```
+
+The `ggplot2movies` package contains a dataset named `movies`, which provides information on `r format(nrow(movies), big.mark = ",")` movies, datging as far back as `r min(movies$year)`! Here is a quick graphical summary of how many movies were realeased each year:
+
+```{r}
+myMovies %>% 
+  group_by(year) %>% 
+    count() %>% 
+      ggplot(aes(x = year, y = n)) +
+        geom_point() +
+        geom_line() +
+        xlab("\nYear") +
+        ylab("Count\n") +
+        scale_y_continuous(labels = comma) +
+        scale_x_continuous(breaks = seq(1890, 2010, by = 10), limits = c(1890, 2010))
+```
+\ 
+
+Aggregating by deacde, we observe that the numnber of movies produced by decade is monotonically non-decreaing (see Table below), save for the final deacde, perhaps because data was not collected fully through that decade.
+
+```{r}
+myMovies %<>%  mutate( 
+decade = cut(year, breaks = seq(1890, 2010, by = 10), labels = paste(seq(1890, 2009, by = 10), "s", sep = ""), right = F, ordered_result = T))
+
+myMovies %>% 
+    group_by(decade) %>% 
+      count %>% 
+        knitr::kable(col.names = c("Decade", "Count"), format.args = list(big.mark = ","), align = c('c', 'c'))
+```
+
+Per decade, we can also track the total budget spent on movies.
+
+```{r}
+myMovies %>% 
+  group_by(decade) %>% 
+    select(decade, budget) %>% 
+      summarise(totalBudget = sum(as.numeric(budget), na.rm = T)) %>% 
+        knitr::kable(format.args = list(big.mark = ","), align = c('c', 'r'), col.names = c("Decade", "Total Budget"))
+```
+
+As judicious and transparent analysts, we must also disclose that the `budget` variable contains `r format(sum(is.na(myMovies$budget)), , big.mark = ",")`, the majority of which are in earlier decades. The following table offers a holistic view of the data we have.
+
+```{r}
+myMovies %>% 
+  group_by(decade) %>% 
+    select(decade, budget) %>% 
+      summarise(
+      totalBudget = sum(as.numeric(budget), na.rm = T), 
+      totalNAs = sum(is.na(budget)), 
+      totalMovies = n(),
+      prctNAs = sum(is.na(budget)) / n() * 100
+      ) %>%  
+        knitr::kable(format.args = list(big.mark = ","), 
+                     align = c('c', 'c', 'r', 'r', 'r'), 
+                     col.names = c("Decade", "Total Budget", "Total NAs", "Total Movies", "% NAs"),
+                     digits = 0)
+```
+
+It is very clear that the budget information we have is highly unrealiable as `r format(sum(is.na(myMovies$budget)) / nrow(myMovies) * 100, digits = 4)`% our of data are `NA`s. Looking at movie length, we observe that our data is far more reliable (see proceeding table).
+
+```{r}
+myMovies %>% 
+  group_by(decade) %>% 
+    select(decade, length) %>% 
+      summarise(
+      totalLenMin = sum(as.numeric(length), na.rm = T),
+      meanLength = mean(as.numeric(length), na.rm = T),
+      medianLength = median(as.numeric(length), na.rm = T),
+      totalNAs = sum(is.na(length)), 
+      totalMovies = n(),
+      prctNAs = sum(is.na(length)) / n() * 100
+      ) %>%  
+        knitr::kable(format.args = list(big.mark = ","), 
+                     align = rep('c', 7), 
+                     col.names = c("Decade", "Total Movie Length (min)", "Mean Length", "Median Length", "Total NAs", "Total Movies", "% NAs"),
+                     digits = 0)
+```
+
+
+
+
+
+
+
+
