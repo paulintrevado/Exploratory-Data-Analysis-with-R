@@ -1,7 +1,7 @@
 ---
 title: 'Assignment #2'
 author: "MSAN 593 - Summer 2018"
-date: "**DUE**: TBD"
+date: "**DUE**: July 31, 2018, 19:15"
 output: pdf_document
 ---
 
@@ -88,7 +88,7 @@ Name         Wavelength
 Gamma        $< 0.01 nm$
 X-Ray        $0.01 nm$ - $10 nm$
 Ultraviolet  $10 nm$ - $400 nm$ 
-Visible      $390 nm$ - $750 nm$ 
+Visible      $400 nm$ - $750 nm$ 
 Infrared     $750 nm$ - $1 mm$ 
 Microwave    $1 mm$ - $1 m$ 
 Radio        $1 m$ - $kms$ 
@@ -107,3 +107,15 @@ Import the file `heart-attack.csv` and answer the following questions **without 
 - How many `private` and `self-employed` people had a stroke?
 - Presuming the data frame in which your data is stored is called `myDF`, explain why the output of `myDF[c(1, 2)]` and `myDF[ ,c(1, 2)]` is the same.
 
+# Question 6
+
+Import the file `fish.csv` (information on specific types of fish) and answer the following questions using `dplyr`:
+
+- Select all the columns that start with `cestode`
+- Select all observations where `wet_weight` is greater than 0.2
+- Select all observations where the `coastal_ecological_area` is Lake Michigan 
+- Select all observations where `sex` is Male **AND** `state_name` is Mississippi
+- Select all observations where `sex` is Male **OR** `state_name` is Mississippi
+- Create a new variable called `large_fish` that is TRUE if a fish is over 10 oz.
+- Create a new variable `parasites` that is TRUE if a fish has more than 1 `unidentified_organism` in it and a `wet_weight` of less than 0.5 oz
+- Summarize (mean, median, max, min) the length of the fish by `state_name`
