@@ -1,0 +1,319 @@
+---
+title: "`dplyr` & `magrittr` LAB SOLUTIONS"
+author: "Paul Intrevado"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include = F}
+library(formatR)
+knitr::opts_chunk$set(echo = T)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+```
+
+```{r libraries, include = F}
+library(tidyverse)
+library(hflights)
+library(magrittr)
+library(knitr)
+myflights <- hflights
+pokemon <- read_csv("~/Desktop/pokemon.csv")
+unc <- read_csv("~/Desktop/uncSalaries.csv")
+```
+
+## Question 1
+
+The `hflights` package contains a dataset named `hflights`, which provides information on `r format(nrow(myflights), big.mark = ",")` flights in 2011 leaving from Houston-based airports. Answer the following questions to help you practice your `dplyr` and `magrittr` skills.
+
+\ 
+
+- How many flights departed per month in total? From IAH per month? From HOU per month?
+
+    ```{r}
+    myflights %>% 
+      count(Month, Origin) %>% 
+        knitr::kable()
+    ```
+\ 
+
+- What was the airline with the most total departures from IAH? From HOU?
+
+    ```{r}
+    myflights %>% 
+      group_by(Origin) %>% 
+        count(UniqueCarrier, sort = T) %>% 
+            top_n(1) %>% 
+              knitr::kable()
+    ```
+\ 
+
+- How many flights were cancelled in 2011? 
+
+    ```{r}
+    myflights %>% 
+        summarize(sum(Cancelled))
+    ```
+\ 
+
+- Which airline suffered from the most cancelled flights?
+    ```{r}
+    myflights %>% 
+      group_by(UniqueCarrier) %>% 
+        summarise(x = sum(Cancelled)) %>% 
+          arrange(desc(x)) %>% 
+            slice(1)
+    ```
+\ 
+
+- Which airline cancelled the most flights *relative* to their total number of flights?
+
+    ```{r}
+    myflights %>% 
+      group_by(UniqueCarrier) %>% 
+        summarise(x = sum(Cancelled), y = n()) %>% 
+          mutate(prctCancelled = x / y * 100) %>% 
+            arrange(desc(prctCancelled)) %>% 
+              top_n(1)
+    ```
+\ 
+
+- What are the top 3 airlines with the longest mean departure delay? 
+    ```{r}
+    myflights %>% 
+      group_by(UniqueCarrier) %>% 
+        summarize(meanDepDelay = mean(DepDelay, na.rm = T)) %>% 
+          arrange(desc(meanDepDelay)) %>% 
+            top_n(3) %>% 
+              knitr::kable()
+    ```
+\newpage
+
+
+- Create a table of all airlines describing the mean, median and variance of departure delay, ordered alphabetically by airline? (do this in a single pipe)
+    ```{r}
+    myflights %>% 
+      select(UniqueCarrier, DepDelay) %>% 
+        group_by(UniqueCarrier) %>% 
+          summarise_all(funs(mean(., na.rm = T), median(., na.rm = T), var(., na.rm = T))) %>% 
+            arrange(UniqueCarrier) %>% 
+              knitr::kable()
+    ```
+\ 
+
+- Which airline had the longest mean arrival delay? 
+    ```{r}
+    myflights %>% 
+        group_by(UniqueCarrier) %>% 
+          summarise(meanDepDelay = mean(ArrDelay, na.rm = T)) %>% 
+            arrange(desc(meanDepDelay)) %>% 
+              slice(1)
+    ```
+\ 
+
+- Which on which day of the week are there the most flights?
+    ```{r}
+    myflights %>% 
+      count(DayOfWeek, sort = T)
+    ```
+\ 
+
+- Which carrier has the worst `AirTime` to `Actual Elapsed Time` ratio (the latter of which includes taxiing
+    ```{r}
+    myflights %>% 
+      mutate(x = AirTime / ActualElapsedTime) %>% 
+        group_by(UniqueCarrier) %>% 
+          summarise(y = mean(x, na.rm = T)) %>% 
+            arrange(y) %>% 
+              slice(1)
+    ```
+\ 
+
+- Which flights had a delayed departure but arrived before scheduled time?
+    ```{r}
+    hflights %>% 
+      filter(DepDelay > 0, ArrDelay < 0) %>% 
+        glimpse()
+    ```
+\ 
+
+- Create a new hflights1 dataframe with an additional variable delay_percent to the dataset.
+    
+    ```{r}
+    hflights1 <-hflights %>% 
+      mutate(delay_percent = (ArrDelay - DepDelay)/DepDelay * 100)
+    ```
+  \ 
+  
+- Use `airlines` to rename the carriers 
+    
+    ```{r}
+    airlines <- c("AA" = "American", "AS" = "Alaska", "B6" = "JetBlue", "CO" = "Continental", 
+             "DL" = "Delta", "OO" = "SkyWest", "UA" = "United", "US" = "US_Airways", 
+             "WN" = "Southwest", "EV" = "Atlantic_Southeast", "F9" = "Frontier", 
+             "FL" = "AirTran", "MQ" = "American_Eagle", "XE" = "ExpressJet", "YV" = "Mesa")
+    ```
+
+    ```{r}
+    hflights$UniqueCarrier <- airlines[hflights$UniqueCarrier]
+    ```
+\ 
+
+- Find the flights flown by one of JetBlue, American_Eagle, or Continental
+
+    ```{r}
+    hflights %>% 
+      filter(UniqueCarrier %in% c('JetBlue', 'American_Eagle', 'Continental')) %>% 
+        glimpse()
+    ```
+\ 
+- Which flights had taxiing time that was greater than flying time? (where taxiing: `TaxinIn` + `TaxiOut`)
+    ```{r}
+    hflights %>% 
+        filter((TaxiIn + TaxiOut) > AirTime) %>% 
+          glimpse()
+    ```
+\ 
+
+- Find all the flights that were cancelled after being delayed
+
+    ```{r}
+    hflights %>% 
+      filter(DepDelay > 0, Cancelled == 1) %>% 
+        glimpse()
+    ```
+\ 
+
+- Display all the flights leaving IAH before 10 am and arrange according to decreasing `AirTime` 
+
+    ```{r}
+    hflights %>% 
+      filter(Origin == 'IAH', DepTime < 800) %>% 
+        arrange(desc(AirTime)) %>% 
+          glimpse()
+    ```
+
+
+## Question 2
+
+The `pokemon` data set contains information on (all?) Pokemon. Answer the following questions to help you practice your `dplyr` and `magrittr` skills.
+
+- How many Pokemon are considered `Legendary`?
+
+    ```{r}
+    pokemon %>% 
+      filter(Legendary == "True") %>% 
+        summarise(n())   
+    ```
+
+- List the top five Pokeman, based on `Total`, whose `Type 1` is either `Grass` or `Fire`.
+
+    ```{r}
+    pokemon %>% 
+      filter(`Type 1` == "Grass" | `Type 1` == "Fire" ) %>% 
+      group_by(`Type 1`) %>% 
+        top_n(5, Total)
+    ```
+
+- What are the mean and standard deviation of `HP` for each `Generation` of Pokemon?
+
+    ```{r}
+    pokemon %>% 
+        group_by(Generation) %>% 
+          summarize(myMean = mean(HP), mySTD = sd(HP))
+    ```
+
+- A Coefficient of Variation (CoV) is defined as the standard deviation divided by the mean ($\frac{s}{\bar{x}}$). Which `Generation` of Pokemon has the **lowest** Cov for `Attack`? 
+
+    ```{r}
+    pokemon %>% 
+        group_by(Generation) %>% 
+          summarize(CoV = sd(HP) / mean(HP)) %>% 
+            arrange(CoV)
+    ```
+
+- Based on their `Type 2` characteristic, what are the Pokeman with the highest and lowest `Speed`?
+
+    ```{r, eval = F}
+    pokemon %>% 
+      top_n(1, Speed)
+      
+      group_by(`Type 1`) %>% 
+        #arrange(desc(Speed)) %>% 
+          top_n(1, Speed) %>% 
+            arrange(`Type 1`)
+    ```
+\ 
+
+
+## Question 3
+
+Import `uncSalaries.csv`, data on the salaries of the University of North Carolina's employees.
+\ 
+
+- What is the mean salary in the Neurosurgery department?
+
+    ```{r}
+    unc %>% 
+      filter(dept == "Neurosurgery") %>% 
+        summarise(meanSal = mean(totalsal, na.rm = T))
+    ```
+\ 
+
+- Return a data frame with employee’s in the Neurosurgery department making more than $500,000. Why might these professors be so well paid?
+
+    ```{r}
+    unc %>% 
+      filter(dept == "Neurosurgery", totalsal > 500000)
+    ```
+\ 
+
+- What is the total amount that full time Dermatology employees get paid
+
+    ```{r}
+    unc %>% 
+      filter(dept == "Dermatology", fte == 1.0) %>% 
+        summarise(sum(totalsal))
+    ```
+\ 
+
+- Create a data frame called `radio_dept` whose rows are the employees from the Radiology department.
+    + include only the following columns: `name`, `position`, `age`, `nonstsal`, `totalsal`.
+    + order the employees by salary
+    
+    ```{r}
+    unc %>% 
+      filter(dept == "Radiology") %>% 
+        select(name, position, age, nonstsal, totalsal) %>% 
+          arrange(desc(totalsal))
+    ```
+\ 
+
+- Create a data frame called `dept_summary` whose rows are the departments and whose columns are: department size, mean department salary, median department salary, and maximum salary (using totalsal for salary).
+
+    ```{r}
+    dept_summary <- unc %>% 
+      group_by(dept) %>% 
+        summarise(deptSize = n(), medSal = median(totalsal, na.rm = T), maxSal = max(totalsal, na.rm = T))
+    ```
+\ 
+
+- Order the departments by highest mean salary and print the 10 highest paid departments.
+    ```{r}
+    unc %>% 
+      group_by(dept) %>% 
+        summarise(meanSal = mean(totalsal, na.rm = T)) %>% 
+          arrange(desc(meanSal)) %>% 
+            top_n(10, meanSal)
+    ```
+\ 
+
+- Order the departments by highest median salary and print the 10 highest paid departments.
+    ```{r}
+    unc %>% 
+      group_by(dept) %>% 
+        summarise(medSal = median(totalsal, na.rm = T)) %>% 
+          arrange(desc(medSal)) %>% 
+            top_n(10, medSal)
+    ```
+
+- Why do these lists differ? If you were asked for the top 10 best paid departments at UNC which summary would you choose and why?
