@@ -259,7 +259,7 @@ myflights %>%
       ylab("Frequency\n")
 ```
 
-\ 
+\newpage
 
 (b) Create a bar graph with `Month` on the x-axis, `Frequency` on the y-axis, with `dodge`d bars for each `Origin`. 
 
@@ -273,21 +273,37 @@ myflights %>%
       scale_y_continuous(labels = comma) + 
       scale_fill_brewer(palette = "Set1")
 ```
+
+\ 
+
+(c) Generate a line graph with `Month` on the x-axis, `Frequency` on the y-axis, by `Origin`, and include a `dotted` horizontal line indicating the mean `Frequency` for each `Origin`, using a minimalist `theme`.
+
 ```{r, echo = F}
+meanVals<- myflights %>% 
+  count(Month, Origin) %>%
+    group_by(Origin) %>% 
+      summarize(meanVal = mean(n))
+
+
 myflights %>% 
   count(Month, Origin) %>% 
     ggplot() + 
-      geom_line(aes(x = Month, y = n, color = Origin)) + 
-      geom_point(aes(x = Month, y = n, color = Origin)) +
+      geom_line(aes(x = Month, y = n, group = Origin, colour = Origin)) + 
+      geom_point(aes(x = Month, y = n, colour = Origin), size = 4, alpha = 0.5 ) +
+      geom_hline(yintercept = meanVals$meanVal[1], linetype = 'dotted') +
+      geom_hline(yintercept = meanVals$meanVal[2], linetype = 'dotted') +
+      scale_y_continuous(labels = comma) +    
       xlab("\nMonth") +
       ylab("Frequency\n") + 
-      scale_y_continuous(labels = comma) + 
-      scale_x_continuous(breaks = seq(12)) +
-      scale_fill_brewer(palette = "Set1") + 
+      scale_colour_brewer(palette = "Set2") + 
       theme_minimal()
 ```
 
+
+
+
 \newpage
+
 
 ## Question 6
 
@@ -296,6 +312,12 @@ usPop <- uspopchange
 ```
 
 The `gcookbook` package contains a dataset named `uspopchange`, which provides information on recent population changes in US States. We are interested in graphing the chnage in population across all states. Create the following graphs.
+
+\ 
+
+(a) Create a bar plot with `Percent Chnage` on the y-axis, `State` on the x-axis.
+
+\ 
 
 ```{r}
 usPop %>% 
@@ -306,6 +328,12 @@ usPop %>%
     scale_y_continuous(labels = percent)
 ```
 
+\newpage
+
+(b) Create a bar plot with `Percent Chnage` on the y-axis, `Region` on the x-axis, `dodge`d by state.
+
+\ 
+
 ```{r}
 usPop %>% 
   ggplot() +
@@ -315,6 +343,11 @@ usPop %>%
     scale_y_continuous(labels = percent)
 ```
 
+\ 
+
+(c) Create a bar plot with `Percent Chnage` on the y-axis, `Region` on the x-axis, `dodge`d by state, arranged from lowest to highest within in `Region`.
+
+\ 
 
 ```{r}
 tempMap <-  usPop %>% 
@@ -329,4 +362,82 @@ usPop %>%
   ylab("% Change\n") + 
   scale_y_continuous(labels = percent) + 
   guides(fill = F) 
+```
+
+\newpage
+
+## Question 7
+
+Import the data set `mlb_01.csv` from the course DropBox folder. 
+
+(a) Generate a boxplot, with `Position.Name` on the x-axis, `Salary` in millions of dollars on the y-axis, and include, for each `Position.Name`, a marker indicating the mean `Salary`.
+
+```{r, include = F}
+mlbData <- read_csv("~/Desktop/mlb_01.csv")
+```
+
+```{r}
+mlbMeans <- mlbData %>% 
+              group_by(Position.Name) %>% 
+                summarize(meanVals = mean(Salary))
+
+mlbData %>% 
+  ggplot() +
+  geom_boxplot(aes(x = Position.Name, y = Salary/1000000), alpha = 0.5, colour = "grey50") +
+  geom_point(data = mlbMeans, aes(x = Position.Name, y = meanVals/1000000), size = 5, shape = 10, colour = "green4", alpha = 0.5) + 
+  xlab("\nPosition") +
+  ylab("Salary ($M)\n")
+```
+
+(b) Generate a sactter plot, with `Position.Name` on the x-axis, `Salary` in millions of dollars on the y-axis, and include, red `labels` for all Japanese players and blue `labels` for all Dominican players.
+
+```{r}
+mlb_j <- mlbData %>% 
+  filter(Japanese == 1)
+
+mlb_d <- mlbData %>% 
+  filter(Dominican == 1)
+
+mlbData %>% 
+  ggplot() +
+  geom_point(aes(x = Position.Name, y = Salary/1000000), alpha = 0.5, colour = "grey50", size = 3) +
+  geom_label(data = mlb_j, aes(x = Position.Name, y = Salary/1000000, label = Player), colour = "red", size = 2, fontface = "bold", alpha = 0.6, ) +
+  geom_label(data = mlb_d, aes(x = Position.Name, y = Salary/1000000, label = Player), colour = "blue4", size = 2, fontface = "bold", alpha = 0.6, ) +
+  xlab("\nPosition") +
+  ylab("Salary ($M)\n")
+```
+
+\newpage
+
+
+## Question 8
+
+Generate fictional stock data including `year` and `stockPrice` using teh following code:
+
+```{r, echo = T}
+set.seed(99)
+myDF <- data.frame(
+  year = sample(1965:2015, 10000, replace = T), 
+  stockPrice = rnorm(10000, 10, 2)
+)
+```
+
+
+Generate a line graph with the mean `stockPrice` per `year` on the y-axis, the `year` on the x-axis, and include a `ribbon` that outlines the `min` and `max` `stockPrice` for a given year. 
+
+```{r}
+myDF %>% 
+  group_by(year) %>% 
+    summarise(
+      s_mean = mean(stockPrice), 
+      s_median = median(stockPrice), 
+      s_min = min(stockPrice), 
+      s_max = max(stockPrice)) %>% 
+        ggplot() +
+        geom_ribbon(aes(x = year, ymin = s_min, ymax = s_max), fill = "grey80", alpha = 0.7) +
+        geom_line(aes(x = year, y = s_mean, group = 1), color = "navyblue") +  
+        #geom_point(aes(x = year, y = s_mean), color = "navyblue", size = 1, alpha = 0.5) + 
+        scale_y_continuous(labels = dollar, limits = c(0, 20),) +
+        scale_x_continuous(limits = c(1965, 2015), breaks = seq(1965,2015, by = 5)) +
+        xlab("\nYear") + ylab("Mean Yearly Stock Price\n")
 ```
