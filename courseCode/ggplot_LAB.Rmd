@@ -1,0 +1,332 @@
+---
+title: "Case Study in `ggplot2`"
+author: "Paul Intrevado"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(formatR)
+knitr::opts_chunk$set(echo = F)
+knitr::opts_chunk$set(message = F)
+knitr::opts_chunk$set(warning = F)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+knitr::opts_chunk$set(fig.width = 5, fig.height = 3.5, fig.align = 'center') 
+```
+
+```{r libraries, include = F}
+library(tidyverse)
+library(hflights)
+library(magrittr)
+library(scales)
+library(reshape2)
+library(gcookbook)
+```
+
+## Question 1
+
+The `reshape2` package contains a dataset named `tips`, which contains information on dining trasactions. Summary of the data follows:
+
+```{r}
+glimpse(tips)
+```
+
+Create the following graphs:
+
+\ 
+
+(a) Plot `time` on x-axis, total_bill on the y-axis, colored by `smoker` and shaped by `sex`.
+
+\ 
+
+```{r}
+tips %>% 
+  ggplot() +
+    geom_point(aes(x = time, y = total_bill, shape = sex, colour = smoker))
+```
+\newpage
+(b) `jitter` the previous plot so points are more visible
+
+```{r}
+tips %>% 
+  ggplot() +
+    geom_point(aes(x = time, y = total_bill, shape = sex, colour = smoker), position = "jitter")
+```
+
+\ 
+
+(c) Create a graph with `time` on the x-axis, mean `tip` on the y-axis, shaped and coloured by `sex`.
+
+```{r}
+tips %>% 
+  mutate(prctTip = tip / total_bill) %>% 
+    group_by(sex, time) %>% 
+      summarize(meanPrct = mean(prctTip, na.rm = T)) %>% 
+        ggplot() +
+          geom_line(aes(x = time, y = meanPrct, group = sex), linetype = "dotted", alpha = 0.6) +
+          geom_point(aes(x = time, y = meanPrct, shape = sex, colour = sex), size = 6, alpha = 0.4) +
+          xlab("\nMeal Time") +
+          ylab("Mean Percent Tip\n") +
+          scale_y_continuous(labels = percent, limits = c(0.15, 0.18), breaks = seq(0.15, 0.18, by = 0.005)) + 
+          theme(axis.text.x = element_text(colour="grey20",size=14,angle=30,hjust=.5,vjust=.5),
+            axis.text.y = element_text(colour="grey20", size=10),  
+            axis.title.x = element_text(colour="grey20", size=14),
+            axis.title.y = element_text(colour="grey20", size=14)) + 
+            guides(colour = guide_legend("Gender"), shape = guide_legend("Gender")) +
+            scale_colour_brewer(palette = "Set1")
+```
+\newpage
+
+(d) Create a graph with `time` on the x-axis, `smoker` on the y-axis, colored by `sex` and sized by `prctTip`, with a minimalist `theme`.
+
+```{r}
+tips %>% 
+  mutate(prctTip = tip / total_bill) %>% 
+    group_by(sex, smoker, time) %>% 
+      ggplot() +
+      geom_point(aes(x = time, y = smoker, size = prctTip, color = sex), position = "jitter", alpha = 0.7) + 
+      xlab("\nMeal Time") +
+      ylab("Smoker/Non-Smoker\n") +
+      theme(axis.text.x = element_text(colour="grey20",size=14),
+            axis.text.y = element_text(colour="grey20",size=10),  
+            axis.title.x = element_text(colour="grey20",size=14),
+            axis.title.y = element_text(colour="grey20",size=14)) + 
+            guides(colour = guide_legend("Gender"), size = guide_legend("% Tip")) +
+            scale_colour_brewer(palette = "Set1") + theme_minimal()
+```
+
+\ 
+
+(e) Create a stacked bar graph with `time` on x-axis, `count` on the y-axis, filled by `sex`.
+
+```{r}
+tips %>% 
+  ggplot() +
+    geom_bar(aes(x = time, fill = sex), alpha = 0.4) +
+    scale_fill_discrete(name = "Gender")
+```
+
+\newpage
+(f) Create a `dodge`d bar graph with `time` on x-axis, `count` on the y-axis, filled by `sex`.
+
+```{r}
+tips %>% 
+  ggplot() +
+    geom_bar(aes(x = time, fill = sex), position = "dodge", alpha = 0.5) +
+    scale_fill_brewer(palette = "Set2", name = "Gender") 
+```
+
+(g) Create a bar graph with `time` on x-axis, `count` on the y-axis, and include the values of each bar.
+
+```{r}
+tips %>% 
+  count(time) %>% 
+  ggplot() +
+  geom_bar(aes(x = time, y = n), stat = "identity", colour = "grey50") + 
+  geom_text(aes(x = time, y = n, label = n), vjust = 1.5, colour = "white") +
+  xlab("\nTime") +
+  ylab("n\n")
+```
+
+\newpage
+
+## Question 2
+
+Create some fictional data using the following code:
+
+```{r, echo = T}
+set.seed(22)
+x_int <- seq(10)
+x_fact <- factor(seq(10))
+y <- rnorm(10,2,13)
+myDF <- data_frame(x_int, x_fact, y)
+```
+
+Note the `type`s of each of the columns in `myDF`.
+
+(a) Create a line graph with `x_int` on the x-axis and `y` on the y-axis.
+
+```{r}
+myDF %>% 
+  ggplot() +
+    geom_line(aes(x = x_int, y = y))
+```
+\newpage
+
+(b) Create a line graph with `x_fact` on the x-axis and `y` on the y-axis.
+
+```{r}
+myDF %>% 
+  ggplot() +
+    geom_line(aes(x = x_fact, y = y), group = 1)
+```
+
+\newpage
+
+## Question 3
+
+Create some fictional data using the following code:
+
+```{r, echo = T}
+set.seed(33)
+day <- rep(seq(7), 2)
+stockPrice <- rnorm(14, 2, 13)
+company <- c(rep("GOOG", 7), rep("APPL", 7))
+myDF <- data_frame(day, stockPrice, company)
+```
+
+\ 
+
+(a) Create a line and point graph with `day` on the x-axis and `stockPrice` on the y-axis, grouped by `company`.
+
+```{r}
+myDF %>% 
+  ggplot() +
+  geom_line(aes(x = day, y = stockPrice, color = company)) +
+  geom_point(aes(x = day, y = stockPrice, colour = company), shape = 21, fill = "white", size = 5) + 
+  scale_color_brewer(palette = "Set1", name = "Company") +
+  scale_y_continuous(labels =  dollar) +
+  scale_x_continuous(breaks = seq(14)) + 
+  xlab("\nWeek Day") +
+  ylab("Stock Price\n")
+```
+\newpage
+
+(b) Add a shaded blue bar to the previous graph, as shown.
+
+```{r}
+myDF %>% 
+  ggplot() +
+  annotate("rect", xmin = 2.5, xmax = 3.5, ymin = -20, ymax = 20, fill = "dodgerblue", alpha = 0.2) +
+  geom_line(aes(x = day, y = stockPrice, color = company)) +
+  geom_point(aes(x = day, y = stockPrice, colour = company), shape = 21, fill = "white", size = 5) + 
+  scale_color_brewer(palette = "Set1", name = "Company") +
+  scale_x_continuous(breaks = seq(14)) +
+  xlab("\nWeek Day") +
+  ylab("Stock Price\n")
+```
+
+
+\newpage
+
+## Question 4
+
+Create some fictional data using the following code:
+
+```{r, echo = T}
+set.seed(44)
+year<- seq(1990, 2000)
+numMovieReleases <- round(abs(rnorm(11, 2, 10)))
+genre <- factor(sample(size = 11, c("Horror", "Drama", "SciFi"), replace = T))
+myDF <- data_frame(year, numMovieReleases, genre)
+```
+
+Create an area graph with `year` on the x-axis and `numMovieRelases` on the y-axis.
+
+```{r}
+myDF %>% 
+  ggplot() +
+  geom_area(aes(x = year, y = numMovieReleases), group = 1, fill = "dodgerblue", alpha = 0.5, colour = "black") +
+  scale_x_continuous(breaks = seq(1900, 2000)) +
+  xlab("\nYear") +
+  ylab("Number of Movie Releases\n") +
+  theme_light()
+```
+
+
+
+\newpage
+
+## Question 5
+
+```{r, include = F}
+myflights <- hflights
+```
+
+The `hflights` package contains a dataset named `hflights`, which provides information on `r format(nrow(myflights), big.mark = ",")` flights in 2011 leaving from Houston-based airports. How many flights departed per month? From IAH? From HOU? Create the following charts.
+
+\ 
+
+(a) Create a bar graph with `Origin` on the x-axis, `Frequency` on the y-axis, with `dodge`d bars for each month. 
+
+```{r}
+myflights %>% 
+  count(Month, Origin) %>% 
+    ggplot() + 
+      geom_bar(aes(x = Origin, y = n, fill = factor(Month)), stat = "identity", position = "dodge") + 
+      guides(fill = F) +
+      scale_y_continuous(labels = comma) + 
+      ylab("Frequency\n")
+```
+
+\ 
+
+(b) Create a bar graph with `Month` on the x-axis, `Frequency` on the y-axis, with `dodge`d bars for each `Origin`. 
+
+```{r}
+myflights %>% 
+  count(Month, Origin) %>% 
+    ggplot() + 
+      geom_bar(aes(x = factor(Month), y = n, fill = Origin), stat = "identity", position = "dodge", alpha = 0.5) +
+      xlab("\nMonth") +
+      ylab("Frequency\n") + 
+      scale_y_continuous(labels = comma) + 
+      scale_fill_brewer(palette = "Set1")
+```
+```{r, echo = F}
+myflights %>% 
+  count(Month, Origin) %>% 
+    ggplot() + 
+      geom_line(aes(x = Month, y = n, color = Origin)) + 
+      geom_point(aes(x = Month, y = n, color = Origin)) +
+      xlab("\nMonth") +
+      ylab("Frequency\n") + 
+      scale_y_continuous(labels = comma) + 
+      scale_x_continuous(breaks = seq(12)) +
+      scale_fill_brewer(palette = "Set1") + 
+      theme_minimal()
+```
+
+\newpage
+
+## Question 6
+
+```{r, include = F}
+usPop <- uspopchange
+```
+
+The `gcookbook` package contains a dataset named `uspopchange`, which provides information on recent population changes in US States. We are interested in graphing the chnage in population across all states. Create the following graphs.
+
+```{r}
+usPop %>% 
+  ggplot() +
+    geom_bar(aes(x = State, y = Change/100), stat = "identity") +
+    theme(axis.text.x = element_text(angle = 60, hjust = 1)) + 
+    ylab("% Change\n") + 
+    scale_y_continuous(labels = percent)
+```
+
+```{r}
+usPop %>% 
+  ggplot() +
+    geom_bar(aes(x = Region, y = Change/100, fill = Abb), stat = 'identity',  position = "dodge") + 
+    guides(fill = F) +
+    ylab("% Change\n") +
+    scale_y_continuous(labels = percent)
+```
+
+
+```{r}
+tempMap <-  usPop %>% 
+  group_by(Region) %>% 
+  arrange(Region, Change)
+
+usPop$Abb <- factor(usPop$Abb, levels = tempMap$Abb, ordered = T)
+
+usPop %>% 
+  ggplot() +
+  geom_bar(aes(x = Region, y = Change/100, fill = Abb), stat = 'identity',  position = "dodge") + 
+  ylab("% Change\n") + 
+  scale_y_continuous(labels = percent) + 
+  guides(fill = F) 
+```
