@@ -1,0 +1,70 @@
+---
+title: "Regulax Expressions Lab in `stringr`"
+author: "Paul Intrevado"
+date: "`r format(Sys.time(), '%B %d, %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(formatR)
+knitr::opts_chunk$set(echo = F)
+knitr::opts_chunk$set(message = F)
+knitr::opts_chunk$set(warning = F)
+knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
+knitr::opts_chunk$set(fig.width = 5, fig.height = 3.5, fig.align = 'center') 
+```
+
+```{r libraries, include = F}
+library(tidyverse)
+library(magrittr)
+```
+
+## Question 1
+
+Using the `state.name` data, do the following:
+
+  a) Find all states that contain at least one instance of he letter "z"
+
+  b) Find all states that contain two subsequent "s"'s, i.e.,"ss"
+
+  c) Find all states that contain at least one but not more than two subsequent "s"'s, i.e.,"s" or "ss"
+
+  d) Find all states that contain at lest two "i"'s, but the they need not be subsequent
+
+  e) Find all states that have compound names, i.e., have two words separated by a space
+
+  f) Find all states that begin with either "North" or "South"
+
+## Question 2
+
+Using `fruit` data from stringr package, do the following:
+
+  a) How many fruits are melons? 
+  
+  b) How many fruits are berries? 
+  
+  c) How many berries come from a single word versus a compound word?
+  
+## Question 3
+  
+Locate 1st sequence of 1 or more consecutive numbers in the following character vector:
+
+```{r}
+x <- c("abcd", "a22bc1d", "ab3453cd46", "a1bc44d")
+```
+
+## Question 4
+
+  a) Write a regular expression that will match a typical US phone number.
+  
+  b) What if that phone number begins with a "+1"? 
+  
+  c) What is the phone number lacks spaces?
+  
+  d) What if the area code is wrapped in round braces?
+  
+  e) What if, instead of dashes, someone decides to use spaces or a "."?
+
+## Question 5
+
+Write a regular expression that will match a gmail address.
