@@ -7,7 +7,7 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 library(formatR)
-knitr::opts_chunk$set(echo = F)
+knitr::opts_chunk$set(echo = T)
 knitr::opts_chunk$set(message = F)
 knitr::opts_chunk$set(warning = F)
 knitr::opts_chunk$set(tidy.opts = list(width.cutoff = 60), tidy = TRUE)
@@ -24,26 +24,55 @@ library(magrittr)
 Using the `state.name` data, do the following:
 
   a) Find all states that contain at least one instance of he letter "z"
+    ```{r}
+    str_subset(state.name, "z")
+    ```
+  
 
   b) Find all states that contain two subsequent "s"'s, i.e.,"ss"
+    ```{r}
+    str_subset(state.name, "ss")
+    ```
 
   c) Find all states that contain at least one but not more than two subsequent "s"'s, i.e.,"s" or "ss"
-
+    ```{r}
+    str_subset(state.name, "s{1,2}")
+    ```
   d) Find all states that contain at lest two "i"'s, but the they need not be subsequent
-
+    ```{r}
+    str_subset(state.name, "i\\w*i")
+    ```
   e) Find all states that have compound names, i.e., have two words separated by a space
+    ```{r}
+    str_subset(state.name, " ")
+    ```
 
   f) Find all states that begin with either "North" or "South"
+    ```{r}
+    str_subset(state.name, "(North|South)")
+    ```
+
+\newpage
 
 ## Question 2
 
 Using `fruit` data from stringr package, do the following:
 
   a) How many fruits are melons? 
+    ```{r}
+    str_subset(fruit, "melon")
+    ```
   
   b) How many fruits are berries? 
+    ```{r}
+    str_subset(fruit, "berry")
+    ```
   
   c) How many berries come from a single word versus a compound word?
+    ```{r}
+    length(str_subset(fruit, " berry"))
+    length(str_subset(fruit, "berry"))
+    ```
   
 ## Question 3
   
@@ -53,18 +82,36 @@ Locate 1st sequence of 1 or more consecutive numbers in the following character 
 x <- c("abcd", "a22bc1d", "ab3453cd46", "a1bc44d")
 ```
 
+```{r}
+str_locate(x, "\\d+")
+```
+
+
 ## Question 4
 
   a) Write a regular expression that will match a typical US phone number.
   
+    `"^//d{3}-//d{3}-//d{4}$"`
+  
   b) What if that phone number begins with a "+1"? 
+  
+    `"^(\\+1)? ?//d{3}-//d{3}-//d{4}$"`
   
   c) What is the phone number lacks spaces?
   
+    `"^(\\+1)? ?//d{3}-?//d{3}-?//d{4}$"`
+  
   d) What if the area code is wrapped in round braces?
   
+    `"^(\\+1)? ?(\\(?//d{3}\\)|//d{3})-?//d{3}-?//d{4}$"`
+  
   e) What if, instead of dashes, someone decides to use spaces or a "."?
+  
+    `"^(\\+1)? ?(\\(?//d{3}\\)|//d{3})[-\\.]?//d{3}[-\\.]?//d{4}$"`
 
 ## Question 5
 
 Write a regular expression that will match a gmail address.
+
+  `"^\\w+@gmail.com$"`
+
